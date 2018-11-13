@@ -1,3 +1,5 @@
+const {shell} = require('electron');
+
 const parser = new DOMParser();
 
 const linksSection = document.querySelector('.links');
@@ -57,6 +59,11 @@ const renderLinks = () => {
   linksSection.innerHTML = linkElements;
 };
 
+const validateResponse = (response) => {
+  if (response.ok) { return response; }
+  throw new Error(`Status code of ${response.status} ${response.statusText}`);
+};
+
 newLinkForm.addEventListener('submit', (event) => {
   event.preventDefault();
 
@@ -68,7 +75,8 @@ newLinkForm.addEventListener('submit', (event) => {
     .then(findTitle)
     .then(title => storeLink(title, url))
     .then(clearForm)
-    .then(renderLinks);
+    .then(renderLinks)
+    .catch(error => handleError(error, url));
 });
 
 clearStorageButton.addEventListener('click', () => {
@@ -77,3 +85,10 @@ clearStorageButton.addEventListener('click', () => {
 });
 
 renderLinks();
+
+linksSection.addEventListener('click', (event) => {
+  if (event.target.href) {
+    event.preventDefault();
+    shell.openExternal(event.target.href);
+  }
+});
